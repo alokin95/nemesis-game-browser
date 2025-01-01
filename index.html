@@ -107,12 +107,32 @@
       display: block;
       margin-bottom: 0.5rem;
     }
-    .form-group {
-      margin-bottom: 1rem;
-      text-align: left;
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1f1f1f;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
     }
-    .form-group input[type="radio"], .form-group input[type="checkbox"] {
-      margin-right: 0.5rem;
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+    }
+    .modal.active, .modal-overlay.active {
+      display: block;
     }
   </style>
 </head>
@@ -151,18 +171,7 @@
         <p><strong>Players Joined:</strong> 3/5</p>
         <p><strong>Password Protected:</strong> Yes</p>
         <p><strong>Started At:</strong> 2025-01-01 14:30</p>
-      </div>
-      <div class="game-card">
-        <h4>Game Name: Space Rescue</h4>
-        <p><strong>Players Joined:</strong> 2/4</p>
-        <p><strong>Password Protected:</strong> No</p>
-        <p><strong>Started At:</strong> 2025-01-01 13:45</p>
-      </div>
-      <div class="game-card">
-        <h4>Game Name: Nemesis Showdown</h4>
-        <p><strong>Players Joined:</strong> 4/4</p>
-        <p><strong>Password Protected:</strong> Yes</p>
-        <p><strong>Started At:</strong> 2025-01-01 12:00</p>
+        <button class="button join-game-button">Join</button>
       </div>
     </div>
   </div>
@@ -170,63 +179,27 @@
   <!-- Joined Games Section -->
   <div id="joined-section" class="game-list" style="display:none;">
     <h3>Joined Games</h3>
-    <div id="joined-games">
-      <div class="game-card">
-        <h4>Game Name: Alien Invasion</h4>
-        <p><strong>Players Joined:</strong> 3/5</p>
-        <p><strong>Status:</strong> Ongoing</p>
-        <button class="button end-game-button">End Game</button>
-      </div>
-      <div class="game-card">
-        <h4>Game Name: Space Rescue</h4>
-        <p><strong>Players Joined:</strong> 4/4</p>
-        <p><strong>Status:</strong> Completed</p>
-        <button class="button end-game-button">End Game</button>
-      </div>
-    </div>
+    <p>You have not joined any games yet.</p>
   </div>
 
-  <!-- End Game Section -->
-  <div id="end-game-section" style="display:none;">
-    <h3>End Game Details</h3>
-    <div class="form-group">
-      <label>Game Notes</label>
-      <textarea id="game-notes" placeholder="Enter game notes..."></textarea>
-    </div>
-    <div class="form-group">
-      <label><input type="checkbox" id="objective-complete"> Objective Completed</label>
-    </div>
+  <!-- Join Game Modal -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+  <div class="modal" id="join-modal">
+    <h3>Join Game</h3>
     <div class="form-group">
       <label>Character Pick</label>
-      <select id="character-pick">
+      <select id="character-pick-modal">
         <option value="">Select Character</option>
         <option value="Engineer">Engineer</option>
         <option value="Scientist">Scientist</option>
-        <option value="Soldier">Soldier</option>
-        <option value="Scout">Scout</option>
-        <option value="Pilot">Pilot</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Game Outcome</label>
-      <input type="radio" name="game-outcome" value="Victory"> Victory<br>
-      <input type="radio" name="game-outcome" value="Defeat"> Defeat<br>
+      <label>Password (if required)</label>
+      <input type="password" id="join-password" placeholder="Enter game password">
     </div>
-    <div class="form-group">
-      <label>Additional Options</label>
-      <input type="checkbox" id="special-item"> Found Special Item<br>
-      <input type="checkbox" id="escaped-ship"> Escaped the Ship<br>
-    </div>
-    <button class="button" id="submit-end-game">Submit</button>
-  </div>
-
-  <!-- Admin Finish Section -->
-  <div id="admin-finish-section" style="display:none;">
-    <h3>Game Admin: Finalize Game</h3>
-    <textarea id="coordinates" placeholder="Enter final coordinates..."></textarea>
-    <textarea id="engine-status" placeholder="Enter engine status..."></textarea>
-    <textarea id="self-destruct" placeholder="Self-destruct sequence details..."></textarea>
-    <button class="button" id="submit-admin-finish">Finalize</button>
+    <button class="button" id="confirm-join">Join Game</button>
+    <button class="button" id="cancel-join">Cancel</button>
   </div>
 </div>
 
@@ -238,68 +211,56 @@
   const hostSection = document.getElementById('host-section');
   const activeSection = document.getElementById('active-section');
   const joinedSection = document.getElementById('joined-section');
-  const endGameSection = document.getElementById('end-game-section');
-  const adminFinishSection = document.getElementById('admin-finish-section');
 
   const createGameButton = document.getElementById('create-game');
-  const endGameButtons = document.querySelectorAll('.end-game-button');
-  const submitEndGameButton = document.getElementById('submit-end-game');
-  const submitAdminFinishButton = document.getElementById('submit-admin-finish');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const joinModal = document.getElementById('join-modal');
+  const confirmJoinButton = document.getElementById('confirm-join');
+  const cancelJoinButton = document.getElementById('cancel-join');
 
-  hostTab.addEventListener('click', () => {
-    switchTab(hostTab, hostSection);
-  });
-
+  hostTab.addEventListener('click', () => switchTab(hostTab, hostSection));
   activeTab.addEventListener('click', () => {
     switchTab(activeTab, activeSection);
+    attachJoinButtonListeners();
   });
-
-  joinedTab.addEventListener('click', () => {
-    switchTab(joinedTab, joinedSection);
-  });
+  joinedTab.addEventListener('click', () => switchTab(joinedTab, joinedSection));
 
   createGameButton.addEventListener('click', () => {
     const name = document.getElementById('game-name').value;
     const players = document.getElementById('player-count').value;
     const password = document.getElementById('game-password').value;
-    console.log('Game Created:', { name, players, password });
     alert('Game created!');
   });
 
-  endGameButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      switchTab(null, endGameSection);
-    });
+  confirmJoinButton.addEventListener('click', () => {
+    const character = document.getElementById('character-pick-modal').value;
+    const password = document.getElementById('join-password').value;
+    alert('Joined game successfully!');
+    closeJoinModal();
   });
 
-  submitEndGameButton.addEventListener('click', () => {
-    console.log('End Game Submitted:', {
-      notes: document.getElementById('game-notes').value,
-      objectiveCompleted: document.getElementById('objective-complete').checked,
-      character: document.getElementById('character-pick').value,
-      outcome: document.querySelector('input[name="game-outcome"]:checked')?.value,
-      specialItem: document.getElementById('special-item').checked,
-      escapedShip: document.getElementById('escaped-ship').checked
-    });
-    alert('Game ended successfully!');
-    switchTab(joinedTab, joinedSection);
-  });
+  cancelJoinButton.addEventListener('click', closeJoinModal);
 
-  submitAdminFinishButton.addEventListener('click', () => {
-    console.log('Admin Finish Submitted:', {
-      coordinates: document.getElementById('coordinates').value,
-      engineStatus: document.getElementById('engine-status').value,
-      selfDestruct: document.getElementById('self-destruct').value
+  function attachJoinButtonListeners() {
+    document.querySelectorAll('.join-game-button').forEach(button => {
+      button.onclick = openJoinModal;
     });
-    alert('Game finalized by Admin!');
-    switchTab(activeTab, activeSection);
-  });
+  }
+
+  function openJoinModal() {
+    joinModal.classList.add('active');
+    modalOverlay.classList.add('active');
+  }
+
+  function closeJoinModal() {
+    joinModal.classList.remove('active');
+    modalOverlay.classList.remove('active');
+  }
 
   function switchTab(tab, section) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.content > div').forEach(s => s.style.display = 'none');
-
-    if (tab) tab.classList.add('active');
+    tab.classList.add('active');
     section.style.display = 'block';
   }
 </script>
