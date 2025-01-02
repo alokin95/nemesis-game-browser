@@ -173,13 +173,7 @@
       <div id="active-section" class="game-list" style="display: none">
         <h3>Active Games</h3>
         <div id="active-games">
-          <div class="game-card">
-            <h4>Game Name: Alien Invasion</h4>
-            <p><strong>Players Joined:</strong> 3/5</p>
-            <p><strong>Password Protected:</strong> Yes</p>
-            <p><strong>Started At:</strong> 2025-01-01 14:30</p>
-            <button class="button join-game-button">Join</button>
-          </div>
+          <!-- List active games here -->
         </div>
       </div>
       <!-- Joined Games Section -->
@@ -288,22 +282,43 @@
       }
 
       function getAllGames() {
-          const apiUrl = "http://localhost:8080/games"
+    const apiUrl = "http://localhost:8080/games"; // Your backend API URL
 
-          fetch(apiUrl, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            }
-          })
-          .then((response) => response.json())
-          .then((data) => {
-              console.log("Server Response:", data);
-          })
-          .catch((error) => {
-              console.error("Error:", error);
-          });
-      }
+    fetch(apiUrl, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Server Response:", data);
+
+            const gamesContainer = document.getElementById("active-games");
+            gamesContainer.innerHTML = ""; // Clear existing games
+
+            data.items.forEach((game) => {
+                const gameCard = document.createElement("div");
+                gameCard.className = "game-card";
+
+                gameCard.innerHTML = `
+                    <h4>Game Name: ${game.Name}</h4>
+                    <p><strong>Status:</strong> ${game.Status}</p>
+                    <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
+                    <p><strong>Created At:</strong> ${game.CreatedAt}</p>
+                    <button class="button join-game-button" data-game-id="${game.Id}">Join</button>
+                `;
+
+                gamesContainer.appendChild(gameCard);
+            });
+
+            // Attach event listeners to the "Join" buttons
+            attachJoinButtonListeners();
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+}
     </script>
   </body>
 </html>
