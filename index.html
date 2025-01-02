@@ -236,9 +236,6 @@
       );
 
       createGameButton.addEventListener("click", () => {
-        const name = document.getElementById("game-name").value;
-        const players = document.getElementById("player-count").value;
-        const password = document.getElementById("game-password").value;
         createGame()
       });
 
@@ -253,7 +250,7 @@
 
       function attachJoinButtonListeners() {
         document.querySelectorAll(".join-game-button").forEach((button) => {
-          button.removeEventListener("click", openJoinModal); // Prevent duplicates
+          button.removeEventListener("click", openJoinModal);
           button.addEventListener("click", openJoinModal);
         });
       }
@@ -282,7 +279,7 @@
       }
 
       function getAllGames() {
-    const apiUrl = "http://localhost:8080/games"; // Your backend API URL
+    const apiUrl = "http://localhost:8080/games"; 
 
     fetch(apiUrl, {
         method: "GET",
@@ -295,7 +292,7 @@
             console.log("Server Response:", data);
 
             const gamesContainer = document.getElementById("active-games");
-            gamesContainer.innerHTML = ""; // Clear existing games
+            gamesContainer.innerHTML = ""; 
 
             data.items.forEach((game) => {
                 const gameCard = document.createElement("div");
@@ -312,7 +309,6 @@
                 gamesContainer.appendChild(gameCard);
             });
 
-            // Attach event listeners to the "Join" buttons
             attachJoinButtonListeners();
         })
         .catch((error) => {
@@ -321,9 +317,8 @@
 }
 
 function createGame() {
-    const apiUrl = "http://localhost:8080/host-game"; // Your backend API URL
+    const apiUrl = "http://localhost:8080/host-game";
 
-    // Fetch input values
     const name = document.getElementById("game-name").value.trim();
     const playerCount = document.getElementById("player-count").value;
     const password = document.getElementById("game-password").value;
@@ -334,22 +329,20 @@ function createGame() {
         return;
     }
 
-    const number_of_players = playerCount ? parseInt(playerCount, 10) : 5; // Default to 5 if not set
+    const number_of_players = playerCount ? parseInt(playerCount, 10) : 5;
 
-    // Prepare request payload
     const requestData = {
-        name, // Game name
-        number_of_players, // Players count
-        password: password || null, // Optional field
+        name, 
+        number_of_players, 
+        password: password || null, 
     };
 
-    // Send POST request
     fetch(apiUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestData), // Convert to JSON string
+        body: JSON.stringify(requestData), 
     })
         .then((response) => {
             if (!response.ok) {
@@ -361,12 +354,10 @@ function createGame() {
             console.log("Game created successfully:", data);
             alert("Game created successfully!");
 
-            // Clear the form
             document.getElementById("game-name").value = "";
             document.getElementById("player-count").value = "";
             document.getElementById("game-password").value = "";
 
-            // Refresh the games list
             getAllGames();
         })
         .catch((error) => {
