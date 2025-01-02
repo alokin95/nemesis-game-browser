@@ -239,7 +239,7 @@
         const name = document.getElementById("game-name").value;
         const players = document.getElementById("player-count").value;
         const password = document.getElementById("game-password").value;
-        alert("Game created!");
+        createGame()
       });
 
       confirmJoinButton.addEventListener("click", () => {
@@ -317,6 +317,61 @@
         })
         .catch((error) => {
             console.error("Error:", error);
+        });
+}
+
+function createGame() {
+    const apiUrl = "http://localhost:8080/host-game"; // Your backend API URL
+
+    // Fetch input values
+    const name = document.getElementById("game-name").value.trim();
+    const playerCount = document.getElementById("player-count").value;
+    const password = document.getElementById("game-password").value;
+
+    // Validation
+    if (!name) {
+        alert("Game name is required.");
+        return;
+    }
+
+    const number_of_players = playerCount ? parseInt(playerCount, 10) : 5; // Default to 5 if not set
+
+    // Prepare request payload
+    const requestData = {
+        name, // Game name
+        number_of_players, // Players count
+        password: password || null, // Optional field
+    };
+
+    // Send POST request
+    fetch(apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData), // Convert to JSON string
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Failed to create the game");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Game created successfully:", data);
+            alert("Game created successfully!");
+
+            // Clear the form
+            document.getElementById("game-name").value = "";
+            document.getElementById("player-count").value = "";
+            document.getElementById("game-password").value = "";
+
+            // Refresh the games list
+            getAllGames();
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Failed to create the game. Please try again.");
         });
 }
     </script>
