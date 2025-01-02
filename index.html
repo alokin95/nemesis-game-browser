@@ -211,7 +211,13 @@
         <button class="button" id="cancel-join">Cancel</button>
       </div>
     </div>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <script>
+      
+      const initData = window.Telegram.WebApp.initData;
+      const params = new URLSearchParams(initData);
+      const user = JSON.parse(params.get('user'));
+
       const hostTab = document.getElementById("host-tab");
       const activeTab = document.getElementById("active-tab");
       const joinedTab = document.getElementById("joined-tab");
@@ -252,17 +258,17 @@
       cancelJoinButton.addEventListener("click", closeJoinModal);
 
       function attachJoinButtonListeners() {
-        console.log("Attaching listeners to join buttons...");
         document.querySelectorAll(".join-game-button").forEach((button) => {
           button.removeEventListener("click", openJoinModal); // Prevent duplicates
           button.addEventListener("click", openJoinModal);
         });
       }
 
+      getAllGames()
+
       function openJoinModal() {
         joinModal.classList.add("active");
         modalOverlay.classList.add("active");
-        console.log("Modal opened.");
       }
 
       function closeJoinModal() {
@@ -279,6 +285,24 @@
           .forEach((s) => (s.style.display = "none"));
         tab.classList.add("active");
         section.style.display = "block";
+      }
+
+      function getAllGames() {
+          const apiUrl = "http://localhost:8080/games"
+
+          fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          })
+          .then((response) => response.json())
+          .then((data) => {
+              console.log("Server Response:", data);
+          })
+          .catch((error) => {
+              console.error("Error:", error);
+          });
       }
     </script>
   </body>
