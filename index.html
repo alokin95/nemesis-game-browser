@@ -212,6 +212,9 @@
       const params = new URLSearchParams(initData);
       const user = JSON.parse(params.get('user'));
 
+      console.log(params)
+      console.log(user)
+
       const hostTab = document.getElementById("host-tab");
       const activeTab = document.getElementById("active-tab");
       const joinedTab = document.getElementById("joined-tab");
@@ -322,19 +325,21 @@ function createGame() {
     const name = document.getElementById("game-name").value.trim();
     const playerCount = document.getElementById("player-count").value;
     const password = document.getElementById("game-password").value;
-
-    // Validation
-    if (!name) {
-        alert("Game name is required.");
-        return;
-    }
-
     const number_of_players = playerCount ? parseInt(playerCount, 10) : 5;
 
     const requestData = {
+      game: {
         name, 
         number_of_players, 
         password: password || null, 
+      },
+      user: {
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        telegram_id: user.id,
+      }
+
     };
 
     fetch(apiUrl, {
