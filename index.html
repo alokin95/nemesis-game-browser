@@ -1,210 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nemesis Game Browser</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background: #121212;
-        color: #e0e0e0;
-      }
-      header {
-        background: #1f1f1f;
-        padding: 1rem;
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nemesis Game Browser</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #121212;
+      color: #e0e0e0;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    header {
+      background: #1f1f1f;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .tab-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      background: #1f1f1f;
+      padding: 0.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem;
+      cursor: pointer;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #2a2a2a;
+      position: relative;
+      font-size: 0.9rem;
+      margin: 0.2rem;
+    }
+    .tab.active {
+      background: #444;
+    }
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 4px;
+      background: #ff9900;
+      border-radius: 2px;
+    }
+    .content {
+      padding: 1rem;
+    }
+    .game-list,
+    .form-container {
+      margin-top: 1rem;
+    }
+    .game-card {
+      border: 1px solid #444;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      background: #2a2a2a;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .button {
+      padding: 0.8rem 1.2rem;
+      margin: 0.5rem 0;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background: #ff9900;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+    .button:hover {
+      background: #ffa833;
+    }
+    .form-container input,
+    .form-container select {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      border: 1px solid #444;
+      background: #1f1f1f;
+      color: #fff;
+      border-radius: 4px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1f1f1f;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+    }
+    .modal.active {
+      display: block !important;
+    }
+    .modal-overlay.active {
+      display: block !important;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @media (max-width: 768px) {
       .tab-container {
-        display: flex;
-        justify-content: space-around;
-        background: #1f1f1f;
-        padding: 0.5rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        flex-direction: column;
+        align-items: center;
       }
       .tab {
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        border: 1px solid #444;
-        border-radius: 4px;
-        background: #2a2a2a;
-        position: relative;
-      }
-      .tab.active {
-        background: #444;
-      }
-      .tab.active::after {
-        content: "";
-        position: absolute;
-        bottom: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80%;
-        height: 4px;
-        background: #ff9900;
-        border-radius: 2px;
-      }
-      .content {
-        padding: 1rem;
-      }
-      .game-list,
-      .form-container {
-        margin-top: 1rem;
-      }
-      .game-card {
-        border: 1px solid #444;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        background: #2a2a2a;
-        border-radius: 4px;
-      }
-      .game-card h4 {
-        margin: 0 0 0.5rem 0;
-      }
-      .game-card p {
-        margin: 0.2rem 0;
-      }
-      .button {
-        padding: 0.5rem 1rem;
-        margin: 0.5rem 0;
-        border: none;
-        cursor: pointer;
-        color: #fff;
-        background: #ff9900;
-        border-radius: 4px;
-        transition: background 0.3s ease;
-      }
-      .button:hover {
-        background: #ffa833;
-      }
-      .form-container {
-        text-align: center;
-        max-width: 500px;
-        margin: 0 auto;
-        background: #1f1f1f;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      }
-      .form-container h3 {
-        margin-bottom: 1rem;
-      }
-      .form-container input,
-      .form-container select,
-      .form-container textarea {
-        width: 100%;
-        margin-bottom: 1rem;
-        padding: 0.5rem;
-        border: 1px solid #444;
-        background: #1f1f1f;
-        color: #fff;
-        border-radius: 4px;
-      }
-      .form-container label {
-        display: block;
         margin-bottom: 0.5rem;
       }
-      .modal {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #1f1f1f;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        width: 90%;
-        max-width: 400px;
+    }
+    @media (max-width: 480px) {
+      .tab {
+        font-size: 0.8rem;
       }
-      .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 999;
-      }
-      .modal.active {
-        display: block !important;
-      }
-      .modal-overlay.active {
-        display: block !important;
-      }
-    </style>
-  </head>
-  <body>
-    <header>Nemesis Game Browser</header>
-    <div class="tab-container">
-      <div id="host-tab" class="tab active">Host a Game</div>
-      <div id="active-tab" class="tab">Active Games</div>
-      <div id="joined-tab" class="tab">Joined Games</div>
+    }
+  </style>
+</head>
+<body>
+  <header>Nemesis Game Browser</header>
+  <div class="tab-container">
+    <div id="host-tab" class="tab active">Host a Game</div>
+    <div id="active-tab" class="tab">Active Games</div>
+    <div id="joined-tab" class="tab">Joined Games</div>
+  </div>
+  <div class="content">
+    <div id="host-section" class="form-container">
+      <h3>Host a New Game</h3>
+      <input type="text" id="game-name" placeholder="Game Name (optional)" />
+      <select id="player-count">
+        <option value="">Number of Players (optional)</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+      <button class="button" id="create-game">Create Game</button>
     </div>
-    <div class="content">
-      <!-- Host Game Section -->
-      <div id="host-section" class="form-container">
-        <h3>Host a New Game</h3>
-        <input type="text" id="game-name" placeholder="Game Name (optional)" />
-        <select id="player-count">
-          <option value="">Number of Players (optional)</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
+    <div id="active-section" class="game-list" style="display: none">
+      <h3>Active Games</h3>
+      <div id="active-games"></div>
+    </div>
+    <div id="joined-section" class="game-list" style="display: none">
+      <h3>Joined Games</h3>
+      <p>You have not joined any games yet.</p>
+    </div>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal" id="join-modal">
+      <h3>Join Game</h3>
+      <div class="form-group">
+        <label>Character Pick</label>
+        <select id="character-pick-modal">
+          <option value="">Select Character</option>
+          <option value="Engineer">Engineer</option>
+          <option value="Scientist">Scientist</option>
         </select>
-        <input
-          type="password"
-          id="game-password"
-          placeholder="Password (optional)"
-        />
-        <button class="button" id="create-game">Create Game</button>
       </div>
-      <!-- Active Games Section -->
-      <div id="active-section" class="game-list" style="display: none">
-        <h3>Active Games</h3>
-        <div id="active-games">
-          <!-- List active games here -->
-        </div>
-      </div>
-      <!-- Joined Games Section -->
-      <div id="joined-section" class="game-list" style="display: none">
-        <h3>Joined Games</h3>
-        <p>You have not joined any games yet.</p>
-      </div>
-      <!-- Join Game Modal -->
-      <div class="modal-overlay" id="modal-overlay"></div>
-      <div class="modal" id="join-modal">
-        <h3>Join Game</h3>
-        <div class="form-group">
-          <label>Character Pick</label>
-          <select id="character-pick-modal">
-            <option value="">Select Character</option>
-            <option value="Engineer">Engineer</option>
-            <option value="Scientist">Scientist</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Password (if required)</label>
-          <input
-            type="password"
-            id="join-password"
-            placeholder="Enter game password"
-          />
-        </div>
-        <button class="button" id="confirm-join">Join Game</button>
-        <button class="button" id="cancel-join">Cancel</button>
-      </div>
+      <button class="button" id="confirm-join">Join Game</button>
+      <button class="button" id="cancel-join">Cancel</button>
     </div>
+  </div>
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <script>
       
@@ -244,7 +229,6 @@
 
       confirmJoinButton.addEventListener("click", () => {
         const character = document.getElementById("character-pick-modal").value;
-        const password = document.getElementById("join-password").value;
         alert("Joined game successfully!");
         closeJoinModal();
       });
@@ -324,14 +308,12 @@ function createGame() {
 
     const name = document.getElementById("game-name").value.trim();
     const playerCount = document.getElementById("player-count").value;
-    const password = document.getElementById("game-password").value;
     const number_of_players = playerCount ? parseInt(playerCount, 10) : 5;
 
     const requestData = {
       game: {
         name, 
         number_of_players, 
-        password: password || null, 
       },
       user: {
         username: user.username,
@@ -361,7 +343,6 @@ function createGame() {
 
             document.getElementById("game-name").value = "";
             document.getElementById("player-count").value = "";
-            document.getElementById("game-password").value = "";
 
             getAllGames();
         })
