@@ -54,10 +54,10 @@ confirmJoinButton.addEventListener("click", () => {
 
 cancelJoinButton.addEventListener("click", closeJoinModal);
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   switchTab(activeTab, activeSection);
-  getJoinedGames(user.id);
-  getAllGames();
+  await getJoinedGames(user.id);
+  getAllGames(); 
 });
 
 function attachJoinButtonListeners() {
@@ -246,11 +246,10 @@ function switchTab(tab, section) {
   section.style.display = "block";
 }
 
-
 function getJoinedGames(telegramId) {
   const apiUrl = `http://localhost:8080/games/joined?telegramId=${telegramId}`;
 
-  fetch(apiUrl, {
+  return fetch(apiUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -258,9 +257,9 @@ function getJoinedGames(telegramId) {
   })
     .then((response) => response.json())
     .then((data) => {
-      joinedGames = data.items || []; // Store joined games for comparison
+      joinedGames = data.items || [];
       const joinedGamesContainer = document.getElementById("joined-section");
-      joinedGamesContainer.innerHTML = "<h3>Joined Games</h3>"; // Reset and add heading
+      joinedGamesContainer.innerHTML = "<h3>Joined Games</h3>";
 
       if (joinedGames.length > 0) {
         joinedGames.forEach((game) => {
