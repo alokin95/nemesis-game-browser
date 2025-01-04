@@ -50,6 +50,8 @@ confirmJoinButton.addEventListener("click", () => {
 
 cancelJoinButton.addEventListener("click", closeJoinModal);
 
+let joinedGames = [];
+
 window.addEventListener("DOMContentLoaded", () => {
   switchTab(activeTab, activeSection);
   getAllGames();
