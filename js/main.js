@@ -1,3 +1,5 @@
+const BASE_URL = "http://localhost:8080";
+
 const initData = window.Telegram.WebApp.initData;
 const params = new URLSearchParams(initData);
 const user = JSON.parse(params.get('user'));
@@ -117,7 +119,7 @@ function handleJoinButtonClick() {
 }
 
 function fetchUnusedCharacters(gameId) {
-  const apiUrl = `http://localhost:8080/characters/available?gameId=${gameId}`;
+  const apiUrl = `${BASE_URL}/characters/available?gameId=${gameId}`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -167,7 +169,7 @@ function switchTab(tab, section) {
 }
 
 function getAllGames() {
-  const apiUrl = "http://localhost:8080/games";
+  const apiUrl = `${BASE_URL}/games`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -188,7 +190,7 @@ function getAllGames() {
 }
 
 function createGame(user) {
-  const apiUrl = "http://localhost:8080/games/host";
+  const apiUrl = `${BASE_URL}/games/host`;
 
   const name = document.getElementById("game-name").value.trim();
   const playerCount = document.getElementById("player-count").value;
@@ -236,7 +238,7 @@ function createGame(user) {
 }
 
 function joinGame(gameId, characterId, playerOrder, telegramUserId) {
-  const apiUrl = "http://localhost:8080/games/join";
+  const apiUrl = `${BASE_URL}/games/join`;
 
   const requestData = {
     gameId: parseInt(gameId),
@@ -288,7 +290,7 @@ function switchTab(tab, section) {
 }
 
 function getJoinedGames(telegramId) {
-  const apiUrl = `http://localhost:8080/games/joined?telegramId=${telegramId}`;
+  const apiUrl = `${BASE_URL}/games/joined?telegramId=${telegramId}`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -352,7 +354,7 @@ function handleFinishGameClick(event) {
 }
 
 function finishGame(data) {
-  const apiUrl = "http://localhost:8080/games/finish";
+  const apiUrl = `${BASE_URL}/games/finish`;
 
   fetch(apiUrl, {
     method: "POST",
@@ -422,7 +424,7 @@ function closeFinishGameModal() {
 }
 
 function fetchObjectives(gameId) {
-  const apiUrl = `http://localhost:8080/objectives/available?gameId=${gameId}`;
+  const apiUrl = `${BASE_URL}/objectives/available?gameId=${gameId}`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -458,7 +460,7 @@ openFinishGameModal = () => {
 };
 
 function fetchDeaths() {
-  const apiUrl = "http://localhost:8080/deaths";
+  const apiUrl = `${BASE_URL}/deaths`;
 
   fetch(apiUrl, {
     method: "GET",
