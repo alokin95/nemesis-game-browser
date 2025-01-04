@@ -19,6 +19,47 @@ const cancelJoinButton = document.getElementById("cancel-join");
 let selectedGameId = null;
 let joinedGames = [];
 
+document.getElementById("save-finish-game").addEventListener("click", () => {
+  const objectiveId = document.getElementById("objective-id").value;
+  const objectiveCompleted = document.getElementById("objective-completed").value;
+  const finishedOn = document.getElementById("finished-on").value;
+  const playerStatus = document.getElementById("player-status").value;
+  const deathId = document.getElementById("death-id").value;
+
+  if (!objectiveId || !finishedOn || !playerStatus || (playerStatus === "dead" && !deathId)) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  const requestData = {
+    user_id: user.id,
+    game_id: selectedGameId,
+    objective_id: parseInt(objectiveId),
+    objective_completed: objectiveCompleted === "true",
+    finished_on: parseInt(finishedOn),
+    player_status: playerStatus,
+    death_id: playerStatus === "dead" ? parseInt(deathId) : null,
+  };
+
+  finishGame(requestData);
+  closeFinishGameModal();
+});
+
+document.getElementById("player-status").addEventListener("change", (event) => {
+  const deathTypeGroup = document.getElementById("death-type-group");
+  const playerStatus = event.target.value;
+
+  if (playerStatus === "dead") {
+    fetchDeaths(); // Fetch death types when "Dead" is selected
+    deathTypeGroup.style.display = "block";
+  } else {
+    deathTypeGroup.style.display = "none"; // Hide the dropdown for other statuses
+    document.getElementById("death-id").value = ""; // Clear previous selection
+  }
+});
+
+document.getElementById("cancel-finish-game").addEventListener("click", closeFinishGameModal);
+
 hostTab.addEventListener("click", () => switchTab(hostTab, hostSection));
 activeTab.addEventListener("click", () => {
   switchTab(activeTab, activeSection);
@@ -76,7 +117,7 @@ function handleJoinButtonClick() {
 }
 
 function fetchUnusedCharacters(gameId) {
-  const apiUrl = `http://localhost:8080/characters/unused?gameId=${gameId}`;
+  const apiUrl = `http://localhost:8080/characters/available?gameId=${gameId}`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -249,7 +290,7 @@ function switchTab(tab, section) {
 function getJoinedGames(telegramId) {
   const apiUrl = `http://localhost:8080/games/joined?telegramId=${telegramId}`;
 
-  return fetch(apiUrl, {
+  fetch(apiUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -297,22 +338,24 @@ function attachFinishGameButtonListeners() {
 
 function handleFinishGameClick(event) {
   const gameId = event.target.getAttribute("data-game-id");
-  if (confirm("Are you sure you want to finish this game?")) {
-    finishGame(gameId);
+  if (!gameId) {
+    console.error("Game ID is required to finish a game.");
+    return;
   }
+
+  selectedGameId = gameId; // Store globally for other operations
+  openFinishGameModal(gameId); // Pass the gameId to fetch objectives
 }
 
-function finishGame(gameId) {
-  const apiUrl = `http://localhost:8080/games/finish`;
-
-  const requestData = { gameId: parseInt(gameId) };
+function finishGame(data) {
+  const apiUrl = "http://localhost:8080/games/finish";
 
   fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(requestData),
+    body: JSON.stringify(data),
   })
     .then(async (response) => {
       if (!response.ok) {
@@ -357,4 +400,94 @@ function renderActiveGames() {
   });
 
   attachJoinButtonListeners(); // Reattach listeners after rendering
+}
+
+function openFinishGameModal(gameId) {
+  fetchObjectives(gameId);
+  populateFinishedOnDropdown();
+
+  const finishGameModal = document.getElementById("finish-game-modal");
+  finishGameModal.classList.add("active");
+  modalOverlay.classList.add("active");
+}
+
+function closeFinishGameModal() {
+  const finishGameModal = document.getElementById("finish-game-modal");
+  finishGameModal.classList.remove("active");
+  modalOverlay.classList.remove("active");
+}
+
+function fetchObjectives(gameId) {
+  const apiUrl = `http://localhost:8080/objectives/available?gameId=${gameId}`;
+
+  fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const objectiveSelect = document.getElementById("objective-id");
+      objectiveSelect.innerHTML = "<option value=''>Select Objective</option>";
+
+      data.items.forEach((objective) => {
+        const option = document.createElement("option");
+        option.value = objective.id;
+        option.textContent = objective.name;
+        objectiveSelect.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching objectives:", error);
+      alert("Failed to load objectives. Please try again.");
+    });
+}
+
+// Call this function when opening the modal
+openFinishGameModal = () => {
+  populateFinishedOnDropdown();
+  fetchObjectives(selectedGameId);
+  const finishGameModal = document.getElementById("finish-game-modal");
+  finishGameModal.classList.add("active");
+  modalOverlay.classList.add("active");
+};
+
+function fetchDeaths() {
+  const apiUrl = "http://localhost:8080/deaths";
+
+  fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const deathSelect = document.getElementById("death-id");
+      deathSelect.innerHTML = "<option value=''>Select Death Type</option>"; // Reset dropdown
+
+      data.items.forEach((death) => {
+        const option = document.createElement("option");
+        option.value = death.id;
+        option.textContent = death.name;
+        deathSelect.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching deaths:", error);
+      alert("Failed to load death types. Please try again.");
+    });
+}
+
+function populateFinishedOnDropdown() {
+  const finishedOnSelect = document.getElementById("finished-on");
+  finishedOnSelect.innerHTML = "<option value=''>Select Turn (1-15)</option>"; // Reset options
+
+  for (let i = 1; i <= 15; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = i;
+    finishedOnSelect.appendChild(option);
+  }
 }

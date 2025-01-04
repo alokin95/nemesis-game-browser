@@ -58,7 +58,48 @@
       </div>
       <button class="button" id="confirm-join">Join Game</button>
       <button class="button" id="cancel-join">Cancel</button>
-    </div>    
+    </div>  
+    <div class="modal" id="finish-game-modal">
+      <h3>Finish Game</h3>
+      <div class="form-group">
+        <label for="objective-id">Objective</label>
+        <select id="objective-id">
+          <option value="">Select Objective</option>
+          <!-- Populate dynamically -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="objective-completed">Objective Completed</label>
+        <select id="objective-completed">
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="finished-on">Finished On</label>
+        <select id="finished-on">
+          <option value="">Select Turn (1-15)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="player-status">Player Status</label>
+        <select id="player-status">
+          <option value="">Select Status</option>
+          <option value="dead">Dead</option>
+          <option value="hibernatorium">Hibernatorium</option>
+          <option value="escape pod">Escape Pod</option>
+        </select>
+        <div class="form-group" id="death-type-group" style="display: none;">
+          <label for="death-id">Death Type</label>
+          <select id="death-id">
+            <option value="">Select Death Type</option>
+            <!-- Options will be populated dynamically -->
+          </select>
+        </div>
+      </div>
+      <button class="button" id="save-finish-game">Save</button>
+      <button class="button" id="cancel-finish-game">Cancel</button>
+    </div>      
   </div>
   <script src="js/main.js"></script>
 </body>
