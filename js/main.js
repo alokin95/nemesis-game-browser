@@ -307,12 +307,16 @@ function getJoinedGames(telegramId) {
           const gameCard = document.createElement("div");
           gameCard.className = "game-card";
 
+          const buttonHTML = game.GameFinished
+            ? `<button class="button game-finished-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Finished</button>`
+            : `<button class="button finish-game-button" data-game-id="${game.Id}">Finish Game</button>`;
+
           gameCard.innerHTML = `
             <h4>Game Name: ${game.Name}</h4>
             <p><strong>Status:</strong> ${game.Status}</p>
             <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
             <p><strong>Created At:</strong> ${game.CreatedAt}</p>
-            <button class="button finish-game-button" data-game-id="${game.Id}">Finish Game</button>
+            ${buttonHTML}
           `;
 
           joinedGamesContainer.appendChild(gameCard);
