@@ -123,7 +123,7 @@ function getAllGames() {
     },
   })
   .then((response) => response.json())
-  .then((data) => {
+  .then(data => {
     const gamesContainer = document.getElementById("active-games");
     gamesContainer.innerHTML = ""; 
 
@@ -201,9 +201,9 @@ function joinGame(gameId, characterId, telegramUserId) {
   const apiUrl = "http://localhost:8080/games/join";
 
   const requestData = {
-    game_id: gameId,
-    character_id: characterId,
-    telegram_user_id: telegramUserId,
+    gameId: parseInt(gameId),
+    characterId: parseInt(characterId),
+    telegramId: parseInt(telegramUserId),
   };
 
   fetch(apiUrl, {
@@ -213,9 +213,12 @@ function joinGame(gameId, characterId, telegramUserId) {
     },
     body: JSON.stringify(requestData),
   })
-  .then((response) => {
+  .then(async (response) => {
     if (!response.ok) {
-      throw new Error("Failed to join the game");
+      const errorMessage = await response.text();
+      console.error("Error from server:", errorMessage);
+      alert(`Error: ${errorMessage}`);
+      throw new Error(errorMessage);
     }
     return response.json();
   })
@@ -225,7 +228,7 @@ function joinGame(gameId, characterId, telegramUserId) {
     getAllGames();
   })
   .catch((error) => {
-    console.error("Error:", error);
-    alert("Failed to join the game. Please try again.");
+    console.error("Caught error:", error.message);
   });
 }
+
