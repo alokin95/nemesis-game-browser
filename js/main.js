@@ -32,13 +32,13 @@ document.getElementById("save-finish-game").addEventListener("click", () => {
   }
 
   const requestData = {
-    user_id: user.id,
-    game_id: selectedGameId,
-    objective_id: parseInt(objectiveId),
-    objective_completed: objectiveCompleted === "true",
-    finished_on: parseInt(finishedOn),
-    player_status: playerStatus,
-    death_id: playerStatus === "dead" ? parseInt(deathId) : null,
+    telegramId: user.id,
+    gameId: parseInt(selectedGameId),
+    objectiveId: parseInt(objectiveId),
+    objectiveCompleted: objectiveCompleted === "true",
+    finishedOn: parseInt(finishedOn),
+    playerStatus: playerStatus,
+    deathId: playerStatus === "dead" ? parseInt(deathId) : null,
   };
 
   finishGame(requestData);
