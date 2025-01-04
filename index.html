@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nemesis Game Browser</title>
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <header>Nemesis Game Browser</header>
@@ -16,7 +17,7 @@
   <div class="content">
     <div id="host-section" class="form-container">
       <h3>Host a New Game</h3>
-      <input type="text" id="game-name" placeholder="Game Name (optional)">
+      <input type="text" id="game-name" placeholder="Game Name (optional)" />
       <select id="player-count">
         <option value="">Number of Players (optional)</option>
         <option value="1">1</option>
@@ -50,10 +51,6 @@
       <button class="button" id="cancel-join">Cancel</button>
     </div>
   </div>
-  <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-  <script type="module" src="js/tabs.js"></script>
-  <script type="module" src="js/modal.js"></script>
-  <script type="module" src="js/games.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
