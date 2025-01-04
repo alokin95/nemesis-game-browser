@@ -219,13 +219,27 @@ function joinGame(gameId, characterId, telegramUserId) {
       alert("Successfully joined the game!");
       closeJoinModal();
 
-      // Refresh both joined and active games after a successful join
-      getJoinedGames(user.id);
+      // Refresh joined games and active games after a successful join
+      getJoinedGames(telegramUserId);
       getAllGames();
+
+      // Automatically switch to "Joined Games" tab
+      switchTab(joinedTab, joinedSection);
     })
     .catch((error) => {
       console.error("Caught error:", error.message);
     });
+}
+
+function switchTab(tab, section) {
+  document
+    .querySelectorAll(".tab")
+    .forEach((t) => t.classList.remove("active"));
+  document
+    .querySelectorAll(".content > div")
+    .forEach((s) => (s.style.display = "none"));
+  tab.classList.add("active");
+  section.style.display = "block";
 }
 
 
@@ -241,7 +255,6 @@ function getJoinedGames(telegramId) {
     .then((response) => response.json())
     .then((data) => {
       joinedGames = data.items || []; // Store joined games for comparison
-      renderActiveGames(); // Refresh active games to reflect joined status
       const joinedGamesContainer = document.getElementById("joined-section");
       joinedGamesContainer.innerHTML = "<h3>Joined Games</h3>"; // Reset and add heading
 
@@ -255,10 +268,13 @@ function getJoinedGames(telegramId) {
             <p><strong>Status:</strong> ${game.Status}</p>
             <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
             <p><strong>Created At:</strong> ${game.CreatedAt}</p>
+            <button class="button finish-game-button" data-game-id="${game.Id}">Finish Game</button>
           `;
 
           joinedGamesContainer.appendChild(gameCard);
         });
+
+        attachFinishGameButtonListeners(); // Attach event listeners to Finish buttons
       } else {
         joinedGamesContainer.innerHTML += "<p>You have not joined any games yet.</p>";
       }
@@ -268,6 +284,51 @@ function getJoinedGames(telegramId) {
       alert("Failed to load joined games. Please try again.");
     });
 }
+
+function attachFinishGameButtonListeners() {
+  document.querySelectorAll(".finish-game-button").forEach((button) => {
+    button.removeEventListener("click", handleFinishGameClick);
+    button.addEventListener("click", handleFinishGameClick);
+  });
+}
+
+function handleFinishGameClick(event) {
+  const gameId = event.target.getAttribute("data-game-id");
+  if (confirm("Are you sure you want to finish this game?")) {
+    finishGame(gameId);
+  }
+}
+
+function finishGame(gameId) {
+  const apiUrl = `http://localhost:8080/games/finish`;
+
+  const requestData = { gameId: parseInt(gameId) };
+
+  fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestData),
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error("Error from server:", errorMessage);
+        alert(`Error: ${errorMessage}`);
+        throw new Error(errorMessage);
+      }
+      return response.json();
+    })
+    .then(() => {
+      alert("Game finished successfully!");
+      getJoinedGames(user.id); // Refresh joined games list after finishing
+    })
+    .catch((error) => {
+      console.error("Error finishing game:", error.message);
+    });
+}
+
 
 function renderActiveGames() {
   const gamesContainer = document.getElementById("active-games");
