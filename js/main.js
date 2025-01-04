@@ -17,6 +17,7 @@ const confirmJoinButton = document.getElementById("confirm-join");
 const cancelJoinButton = document.getElementById("cancel-join");
 
 let selectedGameId = null;
+let joinedGames = [];
 
 hostTab.addEventListener("click", () => switchTab(hostTab, hostSection));
 activeTab.addEventListener("click", () => {
@@ -41,21 +42,22 @@ createGameButton.addEventListener("click", () => {
 
 confirmJoinButton.addEventListener("click", () => {
   const character = document.getElementById("character-pick-modal").value;
-  if (!selectedGameId || !character) {
-    alert("Please select a character.");
+  const playerOrder = document.getElementById("player-order-modal").value;
+
+  if (!selectedGameId || !character || !playerOrder) {
+    alert("Please select both a character and a player order.");
     return;
   }
-  joinGame(selectedGameId, character, user.id);
+
+  joinGame(selectedGameId, character, playerOrder, user.id);
 });
 
 cancelJoinButton.addEventListener("click", closeJoinModal);
 
-let joinedGames = [];
-
 window.addEventListener("DOMContentLoaded", () => {
   switchTab(activeTab, activeSection);
-  getAllGames();
   getJoinedGames(user.id);
+  getAllGames();
 });
 
 function attachJoinButtonListeners() {
@@ -135,7 +137,9 @@ function getAllGames() {
     .then((response) => response.json())
     .then((data) => {
       activeGames = data.items || [];
-      renderActiveGames(); // Separate function to allow re-rendering
+      console.log(activeGames)
+      console.log(joinedGames)
+      renderActiveGames();
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -190,12 +194,13 @@ function createGame(user) {
   });
 }
 
-function joinGame(gameId, characterId, telegramUserId) {
+function joinGame(gameId, characterId, playerOrder, telegramUserId) {
   const apiUrl = "http://localhost:8080/games/join";
 
   const requestData = {
     gameId: parseInt(gameId),
     characterId: parseInt(characterId),
+    playerOrder: parseInt(playerOrder),
     telegramId: parseInt(telegramUserId),
   };
 
@@ -215,21 +220,20 @@ function joinGame(gameId, characterId, telegramUserId) {
       }
       return response.json();
     })
-    .then((data) => {
+    .then(() => {
       alert("Successfully joined the game!");
       closeJoinModal();
 
-      // Refresh joined games and active games after a successful join
       getJoinedGames(telegramUserId);
       getAllGames();
 
-      // Automatically switch to "Joined Games" tab
       switchTab(joinedTab, joinedSection);
     })
     .catch((error) => {
       console.error("Caught error:", error.message);
     });
 }
+
 
 function switchTab(tab, section) {
   document
@@ -274,7 +278,7 @@ function getJoinedGames(telegramId) {
           joinedGamesContainer.appendChild(gameCard);
         });
 
-        attachFinishGameButtonListeners(); // Attach event listeners to Finish buttons
+        attachFinishGameButtonListeners();
       } else {
         joinedGamesContainer.innerHTML += "<p>You have not joined any games yet.</p>";
       }
@@ -328,7 +332,6 @@ function finishGame(gameId) {
       console.error("Error finishing game:", error.message);
     });
 }
-
 
 function renderActiveGames() {
   const gamesContainer = document.getElementById("active-games");
