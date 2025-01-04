@@ -16,6 +16,8 @@ const joinModal = document.getElementById("join-modal");
 const confirmJoinButton = document.getElementById("confirm-join");
 const cancelJoinButton = document.getElementById("cancel-join");
 
+let selectedGameId = null;
+
 hostTab.addEventListener("click", () => switchTab(hostTab, hostSection));
 activeTab.addEventListener("click", () => {
   switchTab(activeTab, activeSection);
@@ -26,13 +28,16 @@ joinedTab.addEventListener("click", () =>
 );
 
 createGameButton.addEventListener("click", () => {
-  createGame(user)
+  createGame(user);
 });
 
 confirmJoinButton.addEventListener("click", () => {
   const character = document.getElementById("character-pick-modal").value;
-  alert("Joined game successfully!");
-  closeJoinModal();
+  if (!selectedGameId || !character) {
+    alert("Please select a character.");
+    return;
+  }
+  joinGame(selectedGameId, character, user.id);
 });
 
 cancelJoinButton.addEventListener("click", closeJoinModal);
@@ -45,8 +50,45 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function attachJoinButtonListeners() {
   document.querySelectorAll(".join-game-button").forEach((button) => {
-    button.removeEventListener("click", openJoinModal);
-    button.addEventListener("click", openJoinModal);
+    button.removeEventListener("click", handleJoinButtonClick);
+    button.addEventListener("click", () => {
+      selectedGameId = button.getAttribute("data-game-id");
+      fetchUnusedCharacters(selectedGameId);
+    });
+  });
+}
+
+function handleJoinButtonClick() {
+  selectedGameId = this.getAttribute("data-game-id");
+  fetchUnusedCharacters(selectedGameId);
+}
+
+function fetchUnusedCharacters(gameId) {
+  const apiUrl = `http://localhost:8080/characters/unused?gameId=${gameId}`;
+
+  fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  .then((response) => response.json())
+  .then(data => {
+    const characterSelect = document.getElementById("character-pick-modal");
+    characterSelect.innerHTML = "<option value=''>Select Character</option>";
+
+    data.items.forEach((character) => {
+      const option = document.createElement("option");
+      option.value = character.id;
+      option.textContent = character.name;
+      characterSelect.appendChild(option);
+    });
+
+    openJoinModal();
+  })
+  .catch((error) => {
+    console.error("Error fetching unused characters:", error);
+    alert("Failed to load characters. Please try again.");
   });
 }
 
@@ -146,10 +188,44 @@ function createGame(user) {
     document.getElementById("game-name").value = "";
     document.getElementById("player-count").value = "";
 
+    switchTab(activeTab, activeSection);
     getAllGames();
   })
   .catch((error) => {
     console.error("Error:", error);
     alert("Failed to create the game. Please try again.");
+  });
+}
+
+function joinGame(gameId, characterId, telegramUserId) {
+  const apiUrl = "http://localhost:8080/games/join";
+
+  const requestData = {
+    game_id: gameId,
+    character_id: characterId,
+    telegram_user_id: telegramUserId,
+  };
+
+  fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestData),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Failed to join the game");
+    }
+    return response.json();
+  })
+  .then((data) => {
+    alert("Successfully joined the game!");
+    closeJoinModal();
+    getAllGames();
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+    alert("Failed to join the game. Please try again.");
   });
 }
