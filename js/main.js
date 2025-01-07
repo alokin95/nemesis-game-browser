@@ -316,8 +316,8 @@ function getJoinedGames(telegramId) {
           let endGameButton = "";
           if (game.TelegramId === user.id) {
             endGameButton = game.CompletedAt !== ""
-              ? `<button class="button game-finished-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Ended</button>`
-              : `<button class="button finish-game-button" data-game-id="${game.Id}">End Game</button>`;
+              ? `<button class="button game-ended-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Ended</button>`
+              : `<button class="button end-game-button" data-game-id="${game.Id}">End Game</button>`;
           }
 
           gameCard.innerHTML = `
@@ -333,6 +333,7 @@ function getJoinedGames(telegramId) {
         });
 
         attachFinishGameButtonListeners();
+        attachEndGameButtonListeners();
       } else {
         joinedGamesContainer.innerHTML += "<p>You have not joined any games yet.</p>";
       }
@@ -503,4 +504,96 @@ function populateFinishedOnDropdown() {
     option.textContent = i;
     finishedOnSelect.appendChild(option);
   }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  attachEndGameButtonListeners();
+});
+
+function attachEndGameButtonListeners() {
+  document.querySelectorAll(".end-game-button").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      selectedGameId = event.target.getAttribute("data-game-id");
+      openEndGameModal();
+    });
+  });
+}
+
+function openEndGameModal() {
+  populateRoundDropdown();
+  const endGameModal = document.getElementById("end-game-modal");
+  const modalOverlay = document.getElementById("modal-overlay");
+
+  endGameModal.classList.add("active");
+  modalOverlay.classList.add("active");
+}
+
+function closeEndGameModal() {
+  const endGameModal = document.getElementById("end-game-modal");
+  const modalOverlay = document.getElementById("modal-overlay");
+
+  endGameModal.classList.remove("active");
+  modalOverlay.classList.remove("active");
+}
+
+function populateRoundDropdown() {
+  const roundSelect = document.getElementById("round");
+  roundSelect.innerHTML = "";
+
+  for (let i = 0; i <= 15; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = i;
+    roundSelect.appendChild(option);
+  }
+}
+
+document.getElementById("confirm-end-game").addEventListener("click", () => {
+  const requestData = {
+    gameId: parseInt(selectedGameId),
+    coordinates: document.getElementById("coordinates").value,
+    round: parseInt(document.getElementById("round").value),
+    engine1: document.getElementById("engine-1").checked,
+    engine2: document.getElementById("engine-2").checked,
+    engine3: document.getElementById("engine-3").checked,
+    explored: document.getElementById("explored").value === "true",
+    causeOfDestruction: document.getElementById("cause-of-destruction").value,
+    telegramId: user.id,
+  };
+
+  if (!requestData.round || !requestData.causeOfDestruction) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  endGame(requestData);
+  closeEndGameModal();
+});
+
+document.getElementById("cancel-end-game").addEventListener("click", closeEndGameModal);
+
+function endGame(data) {
+  const apiUrl = `${BASE_URL}/games/end`;
+
+  fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to end the game.");
+      }
+      return response.json();
+    })
+    .then(() => {
+      alert("Game ended successfully!");
+      getAllGames();
+      getJoinedGames(user.id);
+    })
+    .catch((error) => {
+      console.error("Error ending game:", error.message);
+    });
 }

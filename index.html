@@ -99,7 +99,53 @@
       </div>
       <button class="button" id="save-finish-game">Save</button>
       <button class="button" id="cancel-finish-game">Cancel</button>
-    </div>      
+    </div>  
+    <div class="modal" id="end-game-modal">
+      <h3>End Game</h3>
+      <div class="form-group">
+        <label for="coordinates">Coordinates</label>
+        <select id="coordinates">
+          <option value="deep space">Deep Space</option>
+          <option value="mars">Mars</option>
+          <option value="earth" selected>Earth</option>
+          <option value="venus">Venus</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="round">Round</label>
+        <select id="round">
+          <!-- Populate dynamically -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Engines</label>
+        <div>
+          <label><input type="checkbox" id="engine-1" /> Engine 1</label>
+          <label><input type="checkbox" id="engine-2" /> Engine 2</label>
+          <label><input type="checkbox" id="engine-3" /> Engine 3</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="explored">Explored</label>
+        <select id="explored">
+          <option value="true">Yes</option>
+          <option value="false" selected>No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="cause-of-destruction">Cause of Destruction</label>
+        <select id="cause-of-destruction">
+          <option value="">Select Cause</option>
+          <option value="self destruct">Self Destruct</option>
+          <option value="malfunction">Malfunction</option>
+          <option value="fire">Fire</option>
+          <option value="time track">Time Track</option>
+        </select>
+      </div>
+      <button class="button" id="confirm-end-game">End Game</button>
+      <button class="button" id="cancel-end-game">Cancel</button>
+    </div>
+        
   </div>
   <script src="js/main.js"></script>
 </body>
