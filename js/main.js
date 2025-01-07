@@ -401,13 +401,21 @@ function renderActiveGames() {
     // Check if the game is in the list of joined games
     const isJoined = joinedGames.some((joinedGame) => joinedGame.Id === game.Id);
 
+    let endGameButton = "";
+    if (game.TelegramId === user.id) {
+      endGameButton = game.CompletedAt !== ""
+        ? `<button class="button game-ended-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Ended</button>`
+        : `<button class="button end-game-button" data-game-id="${game.Id}">End Game</button>`;
+    }
+
     gameCard.innerHTML = `
       <h4>Game Name: ${game.Name}</h4>
       <p><strong>Status:</strong> ${game.Status}</p>
       <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
       <p><strong>Created At:</strong> ${game.CreatedAt}</p>
       <button class="button join-game-button" data-game-id="${game.Id}" ${isJoined ? "disabled style='background-color: grey; cursor: not-allowed;'" : ""
-      }>${isJoined ? "Already Joined" : "Join"}</button>
+      }>${isJoined ? "Joined" : "Join"}</button>
+      ${endGameButton}
     `;
 
     gamesContainer.appendChild(gameCard);
