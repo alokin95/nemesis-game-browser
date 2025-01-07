@@ -419,6 +419,8 @@ function renderActiveGames() {
     `;
 
     gamesContainer.appendChild(gameCard);
+
+    attachEndGameButtonListeners();
   });
 
   attachJoinButtonListeners(); // Reattach listeners after rendering
