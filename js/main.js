@@ -100,7 +100,7 @@ cancelJoinButton.addEventListener("click", closeJoinModal);
 window.addEventListener("DOMContentLoaded", async () => {
   switchTab(activeTab, activeSection);
   await getJoinedGames(user.id);
-  getAllGames(); 
+  getAllGames();
 });
 
 function attachJoinButtonListeners() {
@@ -127,24 +127,24 @@ function fetchUnusedCharacters(gameId) {
       "Content-Type": "application/json",
     },
   })
-  .then((response) => response.json())
-  .then(data => {
-    const characterSelect = document.getElementById("character-pick-modal");
-    characterSelect.innerHTML = "<option value=''>Select Character</option>";
+    .then((response) => response.json())
+    .then(data => {
+      const characterSelect = document.getElementById("character-pick-modal");
+      characterSelect.innerHTML = "<option value=''>Select Character</option>";
 
-    data.items.forEach((character) => {
-      const option = document.createElement("option");
-      option.value = character.id;
-      option.textContent = character.name;
-      characterSelect.appendChild(option);
+      data.items.forEach((character) => {
+        const option = document.createElement("option");
+        option.value = character.id;
+        option.textContent = character.name;
+        characterSelect.appendChild(option);
+      });
+
+      openJoinModal();
+    })
+    .catch((error) => {
+      console.error("Error fetching unused characters:", error);
+      alert("Failed to load characters. Please try again.");
     });
-
-    openJoinModal();
-  })
-  .catch((error) => {
-    console.error("Error fetching unused characters:", error);
-    alert("Failed to load characters. Please try again.");
-  });
 }
 
 function openJoinModal() {
@@ -198,8 +198,8 @@ function createGame(user) {
 
   const requestData = {
     game: {
-      name, 
-      number_of_players, 
+      name,
+      number_of_players,
     },
     user: {
       username: user.username,
@@ -214,27 +214,27 @@ function createGame(user) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(requestData), 
+    body: JSON.stringify(requestData),
   })
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error("Failed to create the game");
-    }
-    return response.json();
-  })
-  .then((data) => {
-    alert("Game created successfully!");
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to create the game");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      alert("Game created successfully!");
 
-    document.getElementById("game-name").value = "";
-    document.getElementById("player-count").value = "";
+      document.getElementById("game-name").value = "";
+      document.getElementById("player-count").value = "";
 
-    switchTab(activeTab, activeSection);
-    getAllGames();
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-    alert("Failed to create the game. Please try again.");
-  });
+      switchTab(activeTab, activeSection);
+      getAllGames();
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("Failed to create the game. Please try again.");
+    });
 }
 
 function joinGame(gameId, characterId, playerOrder, telegramUserId) {
@@ -309,16 +309,24 @@ function getJoinedGames(telegramId) {
           const gameCard = document.createElement("div");
           gameCard.className = "game-card";
 
-          const buttonHTML = game.GameFinished
+          const finishGameButton = game.GameFinished
             ? `<button class="button game-finished-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Finished</button>`
             : `<button class="button finish-game-button" data-game-id="${game.Id}">Finish Game</button>`;
+
+          let endGameButton = "";
+          if (game.TelegramId === user.id) {
+            endGameButton = game.CompletedAt !== ""
+              ? `<button class="button game-finished-button" disabled style='background-color: grey; cursor: not-allowed;'">Game Ended</button>`
+              : `<button class="button finish-game-button" data-game-id="${game.Id}">End Game</button>`;
+          }
 
           gameCard.innerHTML = `
             <h4>Game Name: ${game.Name}</h4>
             <p><strong>Status:</strong> ${game.Status}</p>
             <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
             <p><strong>Created At:</strong> ${game.CreatedAt}</p>
-            ${buttonHTML}
+            ${finishGameButton}
+            ${endGameButton}
           `;
 
           joinedGamesContainer.appendChild(gameCard);
@@ -397,8 +405,7 @@ function renderActiveGames() {
       <p><strong>Status:</strong> ${game.Status}</p>
       <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
       <p><strong>Created At:</strong> ${game.CreatedAt}</p>
-      <button class="button join-game-button" data-game-id="${game.Id}" ${
-        isJoined ? "disabled style='background-color: grey; cursor: not-allowed;'" : ""
+      <button class="button join-game-button" data-game-id="${game.Id}" ${isJoined ? "disabled style='background-color: grey; cursor: not-allowed;'" : ""
       }>${isJoined ? "Already Joined" : "Join"}</button>
     `;
 
