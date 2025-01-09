@@ -180,8 +180,6 @@ function getAllGames() {
     .then((response) => response.json())
     .then((data) => {
       activeGames = data.items || [];
-      console.log(activeGames)
-      console.log(joinedGames)
       renderActiveGames();
     })
     .catch((error) => {
@@ -423,7 +421,7 @@ function renderActiveGames() {
     attachEndGameButtonListeners();
   });
 
-  attachJoinButtonListeners(); // Reattach listeners after rendering
+  attachJoinButtonListeners();
 }
 
 function openFinishGameModal(gameId) {
@@ -468,7 +466,32 @@ function fetchObjectives(gameId) {
     });
 }
 
-// Call this function when opening the modal
+function fetchGameParticipants(gameId) {
+  const apiUrl = `${BASE_URL}/games/users?gameId=${gameId}`;
+
+  fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+
+      console.log(data)
+      // data.items.forEach((objective) => {
+      //   const option = document.createElement("option");
+      //   option.value = objective.id;
+      //   option.textContent = objective.name;
+      //   objectiveSelect.appendChild(option);
+      // });
+    })
+    .catch((error) => {
+      console.error("Error fetching game participants:", error);
+      alert("Failed to load participants. Please try again.");
+    });
+}
+
 openFinishGameModal = () => {
   populateFinishedOnDropdown();
   fetchObjectives(selectedGameId);
@@ -522,12 +545,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function attachEndGameButtonListeners() {
   document.querySelectorAll(".end-game-button").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      selectedGameId = event.target.getAttribute("data-game-id");
-      openEndGameModal();
-    });
+    button.removeEventListener("click", handleEndGameClick); // Remove any existing listener
+    button.addEventListener("click", handleEndGameClick); // Attach the new listener
   });
 }
+
+function handleEndGameClick(event) {
+  const gameId = event.target.getAttribute("data-game-id");
+  if (!gameId) {
+    console.error("Game ID is required to end a game.");
+    return;
+  }
+  selectedGameId = gameId;
+  openEndGameModal();
+  fetchGameParticipants(selectedGameId);
+}
+
 
 function openEndGameModal() {
   populateRoundDropdown();
