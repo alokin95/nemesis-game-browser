@@ -346,6 +346,7 @@ async function getJoinedGames(telegramId) {
             <p><strong>Status:</strong> ${game.Status}</p>
             <p><strong>Players Joined:</strong> ${game.ConnectedPlayers}/${game.NumberOfPlayers}</p>
             <p><strong>Created At:</strong> ${game.CreatedAt}</p>
+            <p><strong>Completed at:</strong> ${game.CompletedAt ? game.CompletedAt : "In progress"}</p>
             ${finishGameButton}
             ${endGameButton}
           `;
@@ -655,6 +656,10 @@ document.getElementById("confirm-end-game").addEventListener("click", () => {
     document.querySelectorAll("#participants-container input[type='checkbox']:checked")
 ).map((checkbox) => parseInt(checkbox.value));
 
+const intruderCorpseWeakness = document.getElementById("intruder-corpse-weakness").checked;
+const intruderEggWeakness = document.getElementById("intruder-egg-weakness").checked;
+const characterCorpseWeakness = document.getElementById("character-corpse-weakness").checked;
+
   const requestData = {
     gameId: parseInt(selectedGameId),
     coordinates: document.getElementById("coordinates").value,
@@ -665,10 +670,13 @@ document.getElementById("confirm-end-game").addEventListener("click", () => {
     explored: document.getElementById("explored").value === "true",
     causeOfDestruction: document.getElementById("cause-of-destruction").value,
     telegramId: user.id,
-    winners: selectedParticipants
+    winners: selectedParticipants,
+    characterCorpseWeakness,
+    intruderEggWeakness,
+    intruderCorpseWeakness,
   };
 
-  if (!requestData.round || !requestData.causeOfDestruction) {
+  if (!requestData.round || !requestData.coordinates) {
     alert("Please fill in all required fields.");
     return;
   }
