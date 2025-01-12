@@ -29,7 +29,7 @@ document.getElementById("save-finish-game").addEventListener("click", () => {
   const deathId = document.getElementById("death-id").value;
 
   if (!objectiveId || !finishedOn || !playerStatus || (playerStatus === "dead" && !deathId)) {
-    alert("Please fill in all required fields.");
+    showNotification("Please fill in all required fields.", "error");
     return;
   }
 
@@ -88,7 +88,7 @@ confirmJoinButton.addEventListener("click", () => {
   const playerOrder = document.getElementById("player-order-modal").value;
 
   if (!selectedGameId || !character || !playerOrder) {
-    alert("Please select both a character and a player order.");
+    showNotification("Please select both a character and a player order.", "error");
     return;
   }
 
@@ -151,7 +151,7 @@ async function fetchUnusedCharacters(gameId) {
     })
     .catch((error) => {
       console.error("Error fetching unused characters:", error);
-      alert("Failed to load characters. Please try again.");
+      showNotification("Failed to load characters. Please try again.", "error");
     })
     .finally(() => {
       hideLoadingOverlay()
@@ -239,7 +239,7 @@ async function createGame(user) {
       return response.json();
     })
     .then(async (data) => {
-      alert("Game created successfully!");
+      showNotification("Game created successfully!");
 
       document.getElementById("game-name").value = "";
       document.getElementById("player-count").value = "";
@@ -249,7 +249,7 @@ async function createGame(user) {
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Failed to create the game. Please try again.");
+      showNotification("Failed to create the game. Please try again.", "error");
     })
     .finally(() => {
       hideLoadingOverlay()
@@ -277,13 +277,13 @@ async function joinGame(gameId, characterId, playerOrder, telegramUserId) {
       if (!response.ok) {
         const errorMessage = await response.text();
         console.error("Error from server:", errorMessage);
-        alert(`Error: ${errorMessage}`);
+        showNotification(`Error: ${errorMessage}`, "error");
         throw new Error(errorMessage);
       }
       return response.json();
     })
     .then(async () => {
-      alert("Successfully joined the game!");
+      showNotification("Successfully joined the game!");
       closeJoinModal();
 
       getJoinedGames(telegramUserId);
@@ -362,7 +362,7 @@ async function getJoinedGames(telegramId) {
     })
     .catch((error) => {
       console.error("Error fetching joined games:", error);
-      alert("Failed to load joined games. Please try again.");
+      showNotification("Failed to load joined games. Please try again.", "error");
     })
     .finally(() => {
       hideLoadingOverlay()
@@ -403,13 +403,13 @@ function finishGame(data) {
       if (!response.ok) {
         const errorMessage = await response.text();
         console.error("Error from server:", errorMessage);
-        alert(`Error: ${errorMessage}`);
+        showNotification(`Error: ${errorMessage}`, "error");
         throw new Error(errorMessage);
       }
       return response.json();
     })
     .then(async () => {
-      alert("Game finished successfully!");
+      showNotification("Game finished successfully!");
       await getJoinedGames(user.id); // Refresh joined games list after finishing
     })
     .catch((error) => {
@@ -496,7 +496,7 @@ async function fetchObjectives(gameId) {
     })
     .catch((error) => {
       console.error("Error fetching objectives:", error);
-      alert("Failed to load objectives. Please try again.");
+      showNotification("Failed to load objectives. Please try again.", "error");
     })
     .finally(() => {
       hideLoadingOverlay()
@@ -543,7 +543,7 @@ async function fetchGameParticipants(gameId) {
   })
   .catch((error) => {
       console.error("Error fetching game participants:", error);
-      alert("Failed to load participants. Please try again.");
+      showNotification("Failed to load participants. Please try again.", "error");
   })
   .finally(() => {
     hideLoadingOverlay()
@@ -583,7 +583,7 @@ async function fetchDeaths() {
     })
     .catch((error) => {
       console.error("Error fetching deaths:", error);
-      alert("Failed to load death types. Please try again.");
+      showNotification("Failed to load death types. Please try again.", "error");
     })
     .finally(() => {
       hideLoadingOverlay()
@@ -677,7 +677,7 @@ const characterCorpseWeakness = document.getElementById("character-corpse-weakne
   };
 
   if (!requestData.round || !requestData.coordinates) {
-    alert("Please fill in all required fields.");
+    showNotification("Please fill in all required fields.", "error");
     return;
   }
 
@@ -706,7 +706,7 @@ function endGame(data) {
       return response.json();
     })
     .then(() => {
-      alert("Game ended successfully!");
+      showNotification("Game ended successfully!");
       getAllGames();
       getJoinedGames(user.id);
     })
@@ -726,4 +726,23 @@ function showLoadingOverlay() {
 function hideLoadingOverlay() {
   const overlay = document.getElementById("loading-overlay");
   overlay.classList.add("hidden");
+}
+
+function showNotification(message, type = "success") {
+  const container = document.getElementById("notification-container");
+
+  const notification = document.createElement("div");
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+
+  container.appendChild(notification);
+
+  container.classList.remove("hidden");
+
+  setTimeout(() => {
+    notification.remove();
+    if (!container.hasChildNodes()) {
+      container.classList.add("hidden");
+    }
+  }, 3000);
 }
