@@ -665,6 +665,7 @@ document.getElementById("confirm-end-game").addEventListener("click", () => {
     explored: document.getElementById("explored").value === "true",
     causeOfDestruction: document.getElementById("cause-of-destruction").value,
     telegramId: user.id,
+    winners: selectedParticipants
   };
 
   if (!requestData.round || !requestData.causeOfDestruction) {
