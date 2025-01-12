@@ -78,7 +78,7 @@
       <div class="form-group">
         <label for="finished-on">Finished On</label>
         <select id="finished-on">
-          <option value="">Select Turn (1-15)</option>
+          <option value="">Select Turn</option>
         </select>
       </div>
       <div class="form-group">
@@ -142,11 +142,20 @@
           <option value="time track">Time Track</option>
         </select>
       </div>
+      <div class="form-group">
+        <label for="participants">Winners</label>
+        <div id="participants-container">
+          <!-- Participants will be dynamically added here -->
+        </div>
+      </div>
       <button class="button" id="confirm-end-game">End Game</button>
       <button class="button" id="cancel-end-game">Cancel</button>
-    </div>
-        
+    </div>    
   </div>
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>Loading, please wait...</p>
+  </div> 
   <script src="js/main.js"></script>
 </body>
 </html>

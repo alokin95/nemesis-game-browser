@@ -47,34 +47,34 @@ document.getElementById("save-finish-game").addEventListener("click", () => {
   closeFinishGameModal();
 });
 
-document.getElementById("player-status").addEventListener("change", (event) => {
+document.getElementById("player-status").addEventListener("change", async (event) => {
   const deathTypeGroup = document.getElementById("death-type-group");
   const playerStatus = event.target.value;
 
   if (playerStatus === "dead") {
-    fetchDeaths(); // Fetch death types when "Dead" is selected
+    await fetchDeaths();
     deathTypeGroup.style.display = "block";
-  } else {
-    deathTypeGroup.style.display = "none"; // Hide the dropdown for other statuses
-    document.getElementById("death-id").value = ""; // Clear previous selection
+    return;
   }
+    deathTypeGroup.style.display = "none"; 
+    document.getElementById("death-id").value = "";
 });
 
 document.getElementById("cancel-finish-game").addEventListener("click", closeFinishGameModal);
 
 hostTab.addEventListener("click", () => switchTab(hostTab, hostSection));
-activeTab.addEventListener("click", () => {
+activeTab.addEventListener("click", async () => {
   switchTab(activeTab, activeSection);
-  attachJoinButtonListeners();
+  await attachJoinButtonListeners();
 });
 
 let joinedGamesFetched = false;
 
-joinedTab.addEventListener("click", () => {
+joinedTab.addEventListener("click", async () => {
   switchTab(joinedTab, joinedSection);
 
   if (!joinedGamesFetched) {
-    getJoinedGames(user.id);
+    await getJoinedGames(user.id);
     joinedGamesFetched = true;
   }
 });
@@ -98,28 +98,36 @@ confirmJoinButton.addEventListener("click", () => {
 cancelJoinButton.addEventListener("click", closeJoinModal);
 
 window.addEventListener("DOMContentLoaded", async () => {
-  switchTab(activeTab, activeSection);
-  await getJoinedGames(user.id);
-  getAllGames();
+  try {
+    showLoadingOverlay();
+    switchTab(activeTab, activeSection);
+    await getJoinedGames(user.id);
+    getAllGames();
+    attachEndGameButtonListeners();
+  } finally {
+    hideLoadingOverlay()
+  }
 });
 
-function attachJoinButtonListeners() {
+async function attachJoinButtonListeners() {
   document.querySelectorAll(".join-game-button").forEach((button) => {
     button.removeEventListener("click", handleJoinButtonClick);
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       selectedGameId = button.getAttribute("data-game-id");
-      fetchUnusedCharacters(selectedGameId);
+      await fetchUnusedCharacters(selectedGameId);
     });
   });
 }
 
-function handleJoinButtonClick() {
+async function handleJoinButtonClick() {
   selectedGameId = this.getAttribute("data-game-id");
-  fetchUnusedCharacters(selectedGameId);
+  await fetchUnusedCharacters(selectedGameId);
 }
 
-function fetchUnusedCharacters(gameId) {
+async function fetchUnusedCharacters(gameId) {
   const apiUrl = `${BASE_URL}/characters/available?gameId=${gameId}`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "GET",
@@ -144,7 +152,10 @@ function fetchUnusedCharacters(gameId) {
     .catch((error) => {
       console.error("Error fetching unused characters:", error);
       alert("Failed to load characters. Please try again.");
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
 function openJoinModal() {
@@ -168,8 +179,10 @@ function switchTab(tab, section) {
   section.style.display = "block";
 }
 
-function getAllGames() {
+async function getAllGames() {
   const apiUrl = `${BASE_URL}/games`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "GET",
@@ -178,17 +191,22 @@ function getAllGames() {
     },
   })
     .then((response) => response.json())
-    .then((data) => {
+    .then(async (data) => {
       activeGames = data.items || [];
-      renderActiveGames();
+      await renderActiveGames();
     })
     .catch((error) => {
       console.error("Error:", error);
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function createGame(user) {
+async function createGame(user) {
   const apiUrl = `${BASE_URL}/games/host`;
+
+  showLoadingOverlay()
 
   const name = document.getElementById("game-name").value.trim();
   const playerCount = document.getElementById("player-count").value;
@@ -220,22 +238,25 @@ function createGame(user) {
       }
       return response.json();
     })
-    .then((data) => {
+    .then(async (data) => {
       alert("Game created successfully!");
 
       document.getElementById("game-name").value = "";
       document.getElementById("player-count").value = "";
 
       switchTab(activeTab, activeSection);
-      getAllGames();
+      await getAllGames();
     })
     .catch((error) => {
       console.error("Error:", error);
       alert("Failed to create the game. Please try again.");
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function joinGame(gameId, characterId, playerOrder, telegramUserId) {
+async function joinGame(gameId, characterId, playerOrder, telegramUserId) {
   const apiUrl = `${BASE_URL}/games/join`;
 
   const requestData = {
@@ -261,12 +282,12 @@ function joinGame(gameId, characterId, playerOrder, telegramUserId) {
       }
       return response.json();
     })
-    .then(() => {
+    .then(async () => {
       alert("Successfully joined the game!");
       closeJoinModal();
 
       getJoinedGames(telegramUserId);
-      getAllGames();
+      await getAllGames();
 
       switchTab(joinedTab, joinedSection);
     })
@@ -287,8 +308,10 @@ function switchTab(tab, section) {
   section.style.display = "block";
 }
 
-function getJoinedGames(telegramId) {
+async function getJoinedGames(telegramId) {
   const apiUrl = `${BASE_URL}/games/joined?telegramId=${telegramId}`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "GET",
@@ -297,7 +320,7 @@ function getJoinedGames(telegramId) {
     },
   })
     .then((response) => response.json())
-    .then((data) => {
+    .then(async (data) => {
       joinedGames = data.items || [];
       const joinedGamesContainer = document.getElementById("joined-section");
       joinedGamesContainer.innerHTML = "<h3>Joined Games</h3>";
@@ -330,38 +353,43 @@ function getJoinedGames(telegramId) {
           joinedGamesContainer.appendChild(gameCard);
         });
 
-        attachFinishGameButtonListeners();
-        attachEndGameButtonListeners();
-      } else {
-        joinedGamesContainer.innerHTML += "<p>You have not joined any games yet.</p>";
-      }
+        await attachFinishGameButtonListeners();
+        await attachEndGameButtonListeners();
+        return;
+      } 
+      joinedGamesContainer.innerHTML += "<p>You have not joined any games yet.</p>";
     })
     .catch((error) => {
       console.error("Error fetching joined games:", error);
       alert("Failed to load joined games. Please try again.");
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function attachFinishGameButtonListeners() {
-  document.querySelectorAll(".finish-game-button").forEach((button) => {
-    button.removeEventListener("click", handleFinishGameClick);
-    button.addEventListener("click", handleFinishGameClick);
+async function attachFinishGameButtonListeners() {
+  document.querySelectorAll(".finish-game-button").forEach(async (button) => {
+    button.removeEventListener("click", await handleFinishGameClick);
+    button.addEventListener("click", await handleFinishGameClick);
   });
 }
 
-function handleFinishGameClick(event) {
+async function handleFinishGameClick(event) {
   const gameId = event.target.getAttribute("data-game-id");
   if (!gameId) {
     console.error("Game ID is required to finish a game.");
     return;
   }
 
-  selectedGameId = gameId; // Store globally for other operations
-  openFinishGameModal(gameId); // Pass the gameId to fetch objectives
+  selectedGameId = gameId;
+  await openFinishGameModal(gameId);
 }
 
 function finishGame(data) {
   const apiUrl = `${BASE_URL}/games/finish`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "POST",
@@ -379,20 +407,23 @@ function finishGame(data) {
       }
       return response.json();
     })
-    .then(() => {
+    .then(async () => {
       alert("Game finished successfully!");
-      getJoinedGames(user.id); // Refresh joined games list after finishing
+      await getJoinedGames(user.id); // Refresh joined games list after finishing
     })
     .catch((error) => {
       console.error("Error finishing game:", error.message);
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function renderActiveGames() {
+async function renderActiveGames() {
   const gamesContainer = document.getElementById("active-games");
   gamesContainer.innerHTML = ""; // Clear container before rendering
 
-  activeGames.forEach((game) => {
+  activeGames.forEach(async (game) => {
     const gameCard = document.createElement("div");
     gameCard.className = "game-card";
 
@@ -418,10 +449,10 @@ function renderActiveGames() {
 
     gamesContainer.appendChild(gameCard);
 
-    attachEndGameButtonListeners();
+    await attachEndGameButtonListeners();
   });
 
-  attachJoinButtonListeners();
+  await attachJoinButtonListeners();
 }
 
 function openFinishGameModal(gameId) {
@@ -439,8 +470,10 @@ function closeFinishGameModal() {
   modalOverlay.classList.remove("active");
 }
 
-function fetchObjectives(gameId) {
+async function fetchObjectives(gameId) {
   const apiUrl = `${BASE_URL}/objectives/available?gameId=${gameId}`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "GET",
@@ -449,7 +482,7 @@ function fetchObjectives(gameId) {
     },
   })
     .then((response) => response.json())
-    .then((data) => {
+    .then(async (data) => {
       const objectiveSelect = document.getElementById("objective-id");
       objectiveSelect.innerHTML = "<option value=''>Select Objective</option>";
 
@@ -463,33 +496,57 @@ function fetchObjectives(gameId) {
     .catch((error) => {
       console.error("Error fetching objectives:", error);
       alert("Failed to load objectives. Please try again.");
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function fetchGameParticipants(gameId) {
+async function fetchGameParticipants(gameId) {
   const apiUrl = `${BASE_URL}/games/users?gameId=${gameId}`;
 
-  fetch(apiUrl, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
+  showLoadingOverlay()
 
-      console.log(data)
-      // data.items.forEach((objective) => {
-      //   const option = document.createElement("option");
-      //   option.value = objective.id;
-      //   option.textContent = objective.name;
-      //   objectiveSelect.appendChild(option);
-      // });
-    })
-    .catch((error) => {
+  fetch(apiUrl, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+  })
+  .then((response) => response.json())
+  .then(async (data) => {
+      const participantsContainer = document.getElementById("participants-container");
+      participantsContainer.innerHTML = "";
+
+      if (data.items && data.items.length > 0) {
+          data.items.forEach((participant) => {
+              const participantElement = document.createElement("div");
+              participantElement.className = "participant";
+
+              let participantName = "";
+              participantName = participant.FirstName;
+              participantName+= participant.LastName;
+
+              if (participantName === '' || participantName === null) {
+                participantName = participant.Username
+              }
+
+              participantElement.innerHTML = `
+                  <input type="checkbox" id="participant-${participant.Id}" value="${participant.Id}">
+                  <label for="participant-${participant.Id}">${participantName}</label>
+              `;
+
+              participantsContainer.appendChild(participantElement);
+          });
+          return;
+      } 
+          participantsContainer.innerHTML = "<p>No participants found for this game.</p>";
+  })
+  .catch((error) => {
       console.error("Error fetching game participants:", error);
       alert("Failed to load participants. Please try again.");
-    });
+  })
+  .finally(() => {
+    hideLoadingOverlay()
+  })
 }
 
 openFinishGameModal = () => {
@@ -500,8 +557,10 @@ openFinishGameModal = () => {
   modalOverlay.classList.add("active");
 };
 
-function fetchDeaths() {
+async function fetchDeaths() {
   const apiUrl = `${BASE_URL}/deaths`;
+
+  showLoadingOverlay()
 
   fetch(apiUrl, {
     method: "GET",
@@ -524,14 +583,17 @@ function fetchDeaths() {
     .catch((error) => {
       console.error("Error fetching deaths:", error);
       alert("Failed to load death types. Please try again.");
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
 }
 
-function populateFinishedOnDropdown() {
+async function populateFinishedOnDropdown() {
   const finishedOnSelect = document.getElementById("finished-on");
-  finishedOnSelect.innerHTML = "<option value=''>Select Turn (1-15)</option>"; // Reset options
+  finishedOnSelect.innerHTML = "<option value=''>Select Turn</option>"; // Reset options
 
-  for (let i = 1; i <= 15; i++) {
+  for (let i = 15; i >= 0; i--) {
     const option = document.createElement("option");
     option.value = i;
     option.textContent = i;
@@ -539,11 +601,7 @@ function populateFinishedOnDropdown() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  attachEndGameButtonListeners();
-});
-
-function attachEndGameButtonListeners() {
+async function attachEndGameButtonListeners() {
   document.querySelectorAll(".end-game-button").forEach((button) => {
     button.removeEventListener("click", handleEndGameClick); // Remove any existing listener
     button.addEventListener("click", handleEndGameClick); // Attach the new listener
@@ -561,15 +619,16 @@ function handleEndGameClick(event) {
   fetchGameParticipants(selectedGameId);
 }
 
+async function openEndGameModal() {
+  await fetchGameParticipants(selectedGameId);
+  await populateRoundDropdown(); 
 
-function openEndGameModal() {
-  populateRoundDropdown();
   const endGameModal = document.getElementById("end-game-modal");
   const modalOverlay = document.getElementById("modal-overlay");
-
   endGameModal.classList.add("active");
   modalOverlay.classList.add("active");
 }
+
 
 function closeEndGameModal() {
   const endGameModal = document.getElementById("end-game-modal");
@@ -583,7 +642,7 @@ function populateRoundDropdown() {
   const roundSelect = document.getElementById("round");
   roundSelect.innerHTML = "";
 
-  for (let i = 0; i <= 15; i++) {
+  for (let i = 15; i >= 0; i--) {
     const option = document.createElement("option");
     option.value = i;
     option.textContent = i;
@@ -592,6 +651,10 @@ function populateRoundDropdown() {
 }
 
 document.getElementById("confirm-end-game").addEventListener("click", () => {
+  const selectedParticipants = Array.from(
+    document.querySelectorAll("#participants-container input[type='checkbox']:checked")
+).map((checkbox) => parseInt(checkbox.value));
+
   const requestData = {
     gameId: parseInt(selectedGameId),
     coordinates: document.getElementById("coordinates").value,
@@ -618,6 +681,8 @@ document.getElementById("cancel-end-game").addEventListener("click", closeEndGam
 function endGame(data) {
   const apiUrl = `${BASE_URL}/games/end`;
 
+  showLoadingOverlay()
+
   fetch(apiUrl, {
     method: "POST",
     headers: {
@@ -638,5 +703,18 @@ function endGame(data) {
     })
     .catch((error) => {
       console.error("Error ending game:", error.message);
-    });
+    })
+    .finally(() => {
+      hideLoadingOverlay()
+    })
+}
+
+function showLoadingOverlay() {
+  const overlay = document.getElementById("loading-overlay");
+  overlay.classList.remove("hidden");
+}
+
+function hideLoadingOverlay() {
+  const overlay = document.getElementById("loading-overlay");
+  overlay.classList.add("hidden");
 }
