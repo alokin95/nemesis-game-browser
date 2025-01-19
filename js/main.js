@@ -1,4 +1,4 @@
-const BASE_URL = "http://xenomorphbot.duckdns.org:8080";
+const BASE_URL = "https://xenomorphbot.duckdns.org:8080";
 
 const initData = window.Telegram.WebApp.initData;
 const params = new URLSearchParams(initData);
